@@ -67,16 +67,39 @@
 					var lng;
 					var timestamp;
 
-					for (count = 0; count < data.vehicles.length; count++) {
-						id = data.vehicles[count]["_id"];
-						username = data.vehicles[count]["username"];
-						lat = data.vehicles[count]["lat"];
-						lng = data.vehicles[count]["lng"];
-						timestamp = data.vehicles[count]["created_at"];
+					// if data object is vehicles (aka I am a passenger)
+					if (data.vehicles) {
+						for (count = 0; count < data.vehicles.length; count++) {
+							id = data.vehicles[count]["_id"];
+							username = data.vehicles[count]["username"];
+							lat = data.vehicles[count]["lat"];
+							lng = data.vehicles[count]["lng"];
+							timestamp = data.vehicles[count]["created_at"];
 
-						distance[count] = distance(myLat, myLng, lat, lng);
+							distance[count] = distance(myLat, myLng, lat, lng);
+							var image = {
+								url: 'black_car.png',
+								scaledSize: new google.maps.Size(50, 19),
+							}
+							markOthers(username, lat, lng, distance[count], image);
+						}
+					} 
+					// if data object is passengers (aka I am a driver/vehicle)
+					if (data.passengers) {
+						for (count = 0; count < data.passengers.length; count++) {
+							id = data.passengers[count]["_id"];
+							username = data.passengers[count]["username"];
+							lat = data.passengers[count]["lat"];
+							lng = data.passengers[count]["lng"];
+							timestamp = data.passengers[count]["created_at"];
 
-						markOthers(username, lat, lng, distance[count]);
+							distance[count] = distance(myLat, myLng, lat, lng);
+							var image = {
+								url: 'person.png',
+								scaledSize: new google.maps.Size(19, 48.5),
+							}
+							markOthers(username, lat, lng, distance[count], image);
+						}
 					}
 				}
 			}
@@ -104,11 +127,7 @@
 		} 
 
 		// mark others on the map
-		function markOthers(username, lat, lng, distance) {
-			var image = {
-				url: 'black_car.png',
-				scaledSize: new google.maps.Size(50, 19),
-			}
+		function markOthers(username, lat, lng, distance, image) {
 			var other = new google.maps.LatLng(lat, lng);
 			var otherMarker = new google.maps.Marker({
 				icon: image,
