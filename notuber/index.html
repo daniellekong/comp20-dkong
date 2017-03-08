@@ -13,7 +13,7 @@
 		var myLng = 0;
 		var me = new google.maps.LatLng(myLat, myLng);
 		var mapOptions =  {
-			zoom: 13,
+			zoom: 15,
 			center: me,
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 		};
@@ -32,26 +32,21 @@
 				navigator.geolocation.getCurrentPosition(function(position){
 					myLat = position.coords.latitude;
 					myLng = position.coords.longitude;
-						console.log("lat = " + myLat); // testing
-						console.log("long = " + myLng); // testing
 					locations(myLat, myLng);
 				});	
 			}
 			else {
 				alert("Geolocation is not supported by this browser.");
 			}
-			// draw_map(myLat, myLng);
 		}
 
 		// draw map and XMLHttpRequest
 		function locations(myLat, myLng) {
-			//mark your current location and move the map there
 			me = new google.maps.LatLng(myLat, myLng);
-			console.log(myLat); // testing
 			map.panTo(me);
 			marker = new google.maps.Marker({
 				position: me,
-				title: "Here I Am! Username: QymWuv6O"
+				title: "Here I Am! My username is QymWuv6O."
 			});
 			marker.setMap(map);
 			google.maps.event.addListener(marker, 'click', function() {
@@ -63,37 +58,31 @@
 			xhr.open("POST", "https://defense-in-derpth.herokuapp.com/submit", true);
 			xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			xhr.onreadystatechange = function() {
-				// console.log("before parsing"); // testing
 				if (xhr.readyState == 4 && xhr.status == 200) {
 					var data = JSON.parse(xhr.responseText);
-					// console.log("inside if statement"); // testing
 
 					var id;
 					var username;
 					var lat;
 					var lng;
 					var timestamp;
-					for (count = 0; count < data.length; count++) {
-						id = data[count]["_id"];
-						username = data[count]["username"];
-						lat = data[count]["lat"];
-						lng = data[count]["lng"];
-						timestamp = data[count]["created_at"];
-						// console.log("id = " + id); // testing
-						// console.log(username); // testing
-						// console.log(lat); // testing
-						// console.log(lng); //testing
-						// console.log(timestamp); // testing
 
-						distance(myLat, myLng, lat, lng);
+					for (count = 0; count < data.vehicles.length; count++) {
+						id = data.vehicles[count]["_id"];
+						username = data.vehicles[count]["username"];
+						lat = data.vehicles[count]["lat"];
+						lng = data.vehicles[count]["lng"];
+						timestamp = data.vehicles[count]["created_at"];
+
+						distance[count] = distance(myLat, myLng, lat, lng);
+
+						markOthers(username, lat, lng, distance[count]);
 					}
 				}
 			}
 			xhr.send("username=QymWuv6O&lat=" + myLat + "&lng=" + myLng);
-			// console.log("i'm sent"); // testing
 		}
 
-		// to display distance of others (username and miles away)
 		// haversine formula taken from: 
 		// http://stackoverflow.com/questions/14560999/using-the-haversine-formula-in-javascript
 		function distance(myLat, myLng, lat, lng) {
@@ -107,23 +96,31 @@
 			var x2 = lng-myLng;
 			var dLon = toRad(x2);  
 			var a = Math.sin(dLat/2) * Math.sin(dLat/2) + 
-					Math.cos(toRad(myLat)) * Math.cos(lat2.toRad(lat)) * 
+					Math.cos(toRad(myLat)) * Math.cos(toRad(lat)) * 
 					Math.sin(dLon/2) * Math.sin(dLon/2);  
 			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
 			var d = R * c; 
-			d = d/1.609344; // convert to miles
-
+			return d/1.609344; // convert to miles
 		} 
 
-	/*	function draw_map(myLat, myLng) {
-			var me = new google.maps.LatLng(myLat, myLng);
-			var mapOptions =  {
-				zoom: 13,
-				center: me,
-				mapTypeId: google.maps.MapTypeId.ROADMAP
-			};
-			//map.panTo(me);
-		} */
+		// mark others on the map
+		function markOthers(username, lat, lng, distance) {
+			var image = {
+				url: 'black_car.png',
+				scaledSize: new google.maps.Size(50, 19),
+			}
+			var other = new google.maps.LatLng(lat, lng);
+			var otherMarker = new google.maps.Marker({
+				icon: image,
+				position: other,
+				title: "My username is " + username + " and I am " + distance + " miles away."
+			});
+			otherMarker.setMap(map);
+			google.maps.event.addListener(otherMarker, 'click', function() {
+				infowindow.setContent(otherMarker.title);
+				infowindow.open(map, otherMarker);
+			});
+		}
 
 	</script>
 </head>

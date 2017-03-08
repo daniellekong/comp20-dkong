@@ -2,7 +2,8 @@
 
 README.md Assignment 2, COMP 20, Danielle Kong, 2/9/17
 
-1. Identify what aspects of the work have been correctly implemented and what have not.
+1. All aspects of the assignment have been implemented - having a CSS file, retrieving location via the navigator.geolocation object, sending my location to the datastore, displaying my location on the map, displaying the locations of others on the map, and being able to click on markers for more info.
 
-2. Identify anyone with whom you have collaborated or discussed the assignment.
-3. Say approximately how many hours you have spent completing the assignment.
+2. I briefly discussed the assignment with Chris Hnin and Eujene Yum.
+
+3. I spent approximately 7 hours on this assignment.
