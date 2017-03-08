@@ -3,27 +3,132 @@
 
 <head>
 	<meta charset="utf-8" />
+	<meta name="viewport" content="initial-scale=1.0">
 	<title>The Black Car Service</title>
-	<link rel="stylesheet" href="style.css" type="text/css" />
 	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=true"></script>
+	<link rel="stylesheet" href="style.css" type="text/css" />
 	<script>
+		var map;
+		var myLat = 0;
+		var myLng = 0;
+		var me = new google.maps.LatLng(myLat, myLng);
+		var mapOptions =  {
+			zoom: 13,
+			center: me,
+			mapTypeId: google.maps.MapTypeId.ROADMAP
+		};
+		var marker;
+		var infowindow = new google.maps.InfoWindow();
+
+		// initialize the map
+		function initialize() {
+			map = new google.maps.Map(document.getElementById("map"), mapOptions);
+			get_current_location();
+		}
+
 		// get current location
 		function get_current_location() {
 			if (navigator.geolocation) {
 				navigator.geolocation.getCurrentPosition(function(position){
-					lat = position.coords.latitude;
-					lng = position.coords.longitude;
+					myLat = position.coords.latitude;
+					myLng = position.coords.longitude;
+						console.log("lat = " + myLat); // testing
+						console.log("long = " + myLng); // testing
+					locations(myLat, myLng);
 				});	
 			}
 			else {
 				alert("Geolocation is not supported by this browser.");
 			}
+			// draw_map(myLat, myLng);
 		}
+
+		// draw map and XMLHttpRequest
+		function locations(myLat, myLng) {
+			//mark your current location and move the map there
+			me = new google.maps.LatLng(myLat, myLng);
+			console.log(myLat); // testing
+			map.panTo(me);
+			marker = new google.maps.Marker({
+				position: me,
+				title: "Here I Am! Username: QymWuv6O"
+			});
+			marker.setMap(map);
+			google.maps.event.addListener(marker, 'click', function() {
+				infowindow.setContent(marker.title);
+				infowindow.open(map, marker);
+			});
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", "https://defense-in-derpth.herokuapp.com/submit", true);
+			xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xhr.onreadystatechange = function() {
+				// console.log("before parsing"); // testing
+				if (xhr.readyState == 4 && xhr.status == 200) {
+					var data = JSON.parse(xhr.responseText);
+					// console.log("inside if statement"); // testing
+
+					var id;
+					var username;
+					var lat;
+					var lng;
+					var timestamp;
+					for (count = 0; count < data.length; count++) {
+						id = data[count]["_id"];
+						username = data[count]["username"];
+						lat = data[count]["lat"];
+						lng = data[count]["lng"];
+						timestamp = data[count]["created_at"];
+						// console.log("id = " + id); // testing
+						// console.log(username); // testing
+						// console.log(lat); // testing
+						// console.log(lng); //testing
+						// console.log(timestamp); // testing
+
+						distance(myLat, myLng, lat, lng);
+					}
+				}
+			}
+			xhr.send("username=QymWuv6O&lat=" + myLat + "&lng=" + myLng);
+			// console.log("i'm sent"); // testing
+		}
+
+		// to display distance of others (username and miles away)
+		// haversine formula taken from: 
+		// http://stackoverflow.com/questions/14560999/using-the-haversine-formula-in-javascript
+		function distance(myLat, myLng, lat, lng) {
+			function toRad(x) {
+    			return x * Math.PI / 180;
+  			}
+
+			var R = 6371; // km 
+			var x1 = lat-myLat; 
+			var dLat = toRad(x1);  
+			var x2 = lng-myLng;
+			var dLon = toRad(x2);  
+			var a = Math.sin(dLat/2) * Math.sin(dLat/2) + 
+					Math.cos(toRad(myLat)) * Math.cos(lat2.toRad(lat)) * 
+					Math.sin(dLon/2) * Math.sin(dLon/2);  
+			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+			var d = R * c; 
+			d = d/1.609344; // convert to miles
+
+		} 
+
+	/*	function draw_map(myLat, myLng) {
+			var me = new google.maps.LatLng(myLat, myLng);
+			var mapOptions =  {
+				zoom: 13,
+				center: me,
+				mapTypeId: google.maps.MapTypeId.ROADMAP
+			};
+			//map.panTo(me);
+		} */
 
 	</script>
 </head>
 
-<body onload="get_current_location()">
+<body onload="initialize()">
 	<div id="map"></div>
 </body>
 
