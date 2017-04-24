@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title> Assignment 4: Security Assessment</title>
+	<meta charset="utf-8"/>
+	<link rel="stylesheet" href="style.css"/>
+</head>
+
+<body>
+	<h1>Security Assessment of The Black Car Service</h1>
+	<h4>Danielle Kong</h4>
+	<h4>April 23, 2017</h4>
+	<h4>COMP 20: Web Programming, Assignment 4</h4>
+
+	<h2>Introduction</h2>
+	<p>
+		This security assessment identifies security vulnerabilities of Darcy Hinck's version of <a href="http://lit-reef-32701.herokuapp.com/">The Black Car Service</a>, which was created for COMP20 at Tufts University. The Black Car Service includes a client-side and server-side. In the client-side, users are able to provide their locations (latitude and longitude), and display and retrieve the locations (latitude and longitude) of others. The server-side had to fulfill a POST request (where users submit their username, latitude, and longitude, and are returned a JSON string  of either the passengers or vehicles), a GET request (where a JSON object is returned if queried and found inside the vehicles collection), and another GET request (that displays all of the passengers in the database).
+	</p>
+	<h2>Methodology</h2>
+	<p>
+		Black-box testing was first carried out using just what would be available to an attacker. Then, I looked at the server-side code and mainly used the curl command in the terminal. Security vulnerabilities were found with these methods.
+	</p>
+	<h2>Abstract of Findings</h2>
+	<p>
+		This web application contains vulnerabilities that affect security. In this assessment, three issues are highlighted. The first is cross-site scripting; attackers can inject malicious scripts as input into the database and affect the application by making these scripts run everytime the application is loaded. The second is a privacy issue with query parameters; when using a special parameter (<code>[$ne]</code>, or not equal to), the application takes a long time to process the request, and eventually times out and yields a 503 error. The third is an issue with being able to input false data; users can enter false identities and locations. Using the recommendations suggested in this assessment, these vulnerabilities can be mitigated. 
+	</p>
+	<h2>Issues Found</h2>
+		<ul>
+			<li>Cross-Site Scripting (XSS)
+				<ul>
+					<li>Location: affects POST /submit API</li>
+					<li>Severity: high severity issue - this is a vulnerability that allows code to run whenever data is displayed and the GET '/' request is executed</li>
+					<li>Description: this web application is vulnerable to XSS. User input is not filtered and checks aren't put into place to prevent users from inputting malicious code. I used curl to input the following script to make an alert window appear each time the page is loaded: 
+						<img src="xss-code.png" alt="cross-site scripting code">
+					</li>
+					<li>See proof of vulnerability:
+						<img src="xss-result.png" alt="cross-site scripting result">
+					</li>
+					<li>Resolution: this can be solved by checking and filtering user input before it is added to the database. One method to prevent XSS is to remove characters from input that are used in code injection such as (&, <, >, ", '). For instance, <code>username=username.replace(/[^w\s]/gi, '');</code> can be used to remove all special characters (which are found in scripts).</li>
+				</ul>
+			</li>
+			<li>Query Parameters
+				<ul>
+					<li>Location: affects GET /vehicle.json API</li>
+					<li>Severity: high severity issue - this is a vulnerability that causes the request to timeout and a 503 error</li>
+					<li>Description: when using <code>[$ne]</code> as a query parameter, which selects the documents that are not equal to the given value, the request takes a long time to process, times out, and an application error occurs.</li>
+					<li>See proof of vulnerability:
+						<img src="query-parameter.png" alt="query parameter vulnerability">
+					</li>
+					<li>Resolution: it is possible that the server is not parsing this query properly, and thus does not return any JSON object. If the code is changed in how it parses the query, this may solve the error and not cause the request to timeout.</li>
+				</ul>
+			</li>
+			<li>Inputting False Data
+				<ul>
+					<li>Location: affects /vehicle.json</li>
+					<li>Severity: high severity issue - false information can be inserted into the database and users can take on false identities by entering different usernames</li>
+					<li>Description: there are no checks in place to prevent inserting false data and identities into the database. In this example, I said that I was Hugh Jackman, and entered the latitude and longitude for San Francisco. Curl was used to input the data.
+						<img src="false-data.png" alt="insert false data">
+					</li>
+					<li>See proof of vulnerability:
+						<img src="false-data-result.png" alt="false data successfully inserted into database">
+					</li>
+					<li>Resolution: to combat this vulnerability, authentication checks need to be put into place to verify the user's identity and location. To limit the user group to only those who have been given usernames, a list of approved usernames can be stored and checked against. To prevent false locations from being inserted, one solution could be to check that the latitudes and longitudes entered match the IP address location of the user. You could get a user's IP address by using the following code from <a href="http://stackoverflow.com/questions/8107856/how-to-determine-a-users-ip-address-in-node">Stack Overflow</a>: <code>var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;</code>. Then using one of the various IP location finders, you could compare the values entered to the results from the finder.</li>
+				</ul>
+			</li>
+		</ul>
+	<h2>Conclusion</h2>
+	<p>
+		Three security vulnerabilities are described here - XSS, query parameters, and inputting false data. Implementing the solutions suggested in this assessment could greatly improve the security of this web application. Of all the recommendations outlined in this assessment, it seems that authentication checks may be the most difficult to implement, but making these revisions are critical. In the future, it is a good idea to consider security vulnerabilities while designing an application so that these measures are integrated from the beginning and reduce the risk of malicious threats.
+	</p>
+	<h2>References</h2>
+		<ul>
+			<li><a href="https://tuftsdev.github.io/WebProgramming/">Resources on COMP20 Course Website</a></li>
+			<li><a href="https://www.owasp.org/index.php/Testing_for_Cross_site_scripting">OWASP: Testing for Cross site scripting</a></li>
+			<li><a href="https://www.owasp.org/index.php/XSS_%28Cross_Site_Scripting%29_Prevention_Cheat_Sheet">OWASP: XSS Prevention Cheat Sheet</a></li>
+			<li><a href="http://stackoverflow.com/questions/8107856/how-to-determine-a-users-ip-address-in-node">Stack Overflow: Determine a User's IP Address</a></li>
+		</ul>
+</body>
+
+</html>

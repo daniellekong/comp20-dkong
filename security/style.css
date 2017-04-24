@@ -1,0 +1,12 @@
+body {
+	font-family: 'Avenir', 'Montserrat', sans-serif;
+}
+
+img {
+	display: block;
+	max-width: 80%;
+}
+
+a {
+	text-decoration: none;
+}
